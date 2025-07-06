@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>CareBot 🩺</title>
+  <style>
+    body {
+      background: linear-gradient(to right, #e0f7fa, #fce4ec);
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      padding: 30px;
+      display: flex;
+      justify-content: center;
+    }
+    #chatbox {
+      background: #fff;
+      border-radius: 20px;
+      box-shadow: 0 6px 20px rgba(0, 0, 0, 0.1);
+      padding: 25px;
+      width: 100%;
+      max-width: 700px;
+      position: relative;
+    }
+    #chat {
+      max-height: 400px;
+      overflow-y: auto;
+      margin-bottom: 15px;
+    }
+    .message {
+      margin-bottom: 12px;
+    }
+    .user {
+      color: #007acc;
+      font-weight: bold;
+    }
+    .bot {
+      color: #444;
+    }
+    input[type="text"] {
+      width: 75%;
+      padding: 12px;
+      border-radius: 10px;
+      border: 1px solid #ccc;
+      margin-right: 10px;
+    }
+    button {
+      padding: 12px 20px;
+      border: none;
+      border-radius: 10px;
+      background: #ff69b4;
+      color: white;
+      font-weight: bold;
+      cursor: pointer;
+    }
+    .disclaimer {
+      font-size: 0.85rem;
+      color: #888;
+      margin-top: 20px;
+      text-align: center;
+    }
+    .header {
+      font-size: 1.6rem;
+      font-weight: bold;
+      margin-bottom: 15px;
+      color: #d81b60;
+      text-align: center;
+    }
+  </style>
+</head>
+<body>
+  <div id="chatbox">
+    <div class="header">CareBot 🩺 — Your Friendly Medical Helper</div>
+    <div id="chat"></div>
+    <input type="text" id="userInput" placeholder="Describe your symptom..." />
+    <button onclick="sendMessage()">Send</button>
+    <div class="disclaimer">
+      ⚠️ This chatbot provides only general advice and OTC suggestions. Please consult a licensed doctor for medical treatment.
+    </div>
+  </div>
+
+  <script>
+    const chat = document.getElementById('chat');
+
+    function addMessage(sender, text) {
+      const messageDiv = document.createElement('div');
+      messageDiv.classList.add('message');
+      messageDiv.innerHTML = `<span class="${sender}">${sender === 'user' ? 'You' : 'CareBot'}:</span> ${text}`;
+      chat.appendChild(messageDiv);
+      chat.scrollTop = chat.scrollHeight;
+    }
+
+    async function sendMessage() {
+      const userInput = document.getElementById('userInput');
+      const message = userInput.value.trim();
+      if (!message) return;
+      addMessage('user', message);
+      userInput.value = '';
+
+      const response = await getBotReply(message);
+      addMessage('bot', response);
+    }
+
+    async function getBotReply(message) {
+      const apiKey = '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'; // Replace with your key
+
+      try {
+        const response = await fetch('https://api.openai.com/v1/chat/completions', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${apiKey}`
+          },
+          body: JSON.stringify({
+            model: 'gpt-4',
+            messages: [
+              { role: 'system', content: 'You are a kind and cautious medical assistant. You help users understand symptoms and suggest OTC remedies or when to see a doctor. Never give prescriptions.' },
+              { role: 'user', content: message }
+            ]
+          })
+        });
+
+        const data = await response.json();
+        return data.choices[0].message.content;
+      } catch (error) {
+        console.error('Error:', error);
+        return "I'm sorry, something went wrong while trying to help. Please try again later.";
+      }
+    }
+  </script>
+</body>
+</html>
